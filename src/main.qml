@@ -33,6 +33,10 @@ ApplicationWindow {
         onProcessingComplete: {
             fileLoad.loadComplete()
         }
+        onProgress: {
+            fileLoad.text = qsTr("Done ") +  (percentage) + " %"
+        }
+
         onDataUpdating: {
             //console.log("Update data", freq, word)
             var fnd = pieSeries.find(word)
@@ -42,7 +46,7 @@ ApplicationWindow {
             } else {
                 //console.log("Add new value")
                 if (pieSeries.count > 14) {
-                    if (pieSeries.minValue < freq) {
+                    if (pieSeries.minValue <= freq) {
                         //console.log("Try to replace exiting label")
                         var min = freq
                         var f = null
@@ -75,7 +79,7 @@ ApplicationWindow {
 
     ChartView {
         id: chart
-        property string baseName: "Top 15 words "
+        property string baseName: qsTr("Top 15 words ")
         title: baseName
         //width: parent.width
         //height: parent.height
@@ -95,12 +99,15 @@ ApplicationWindow {
             id: loadMenu
             MenuItem {
                 id: fileLoad
-                text: qsTr("Load file")
+                property  string openingReady : qsTr("Load file")
+                text: fileLoad.openingReady
                 onTriggered: {
                     fileLoad.enabled = false
                     fileDialog.open()
                 }
-                function loadComplete() {fileLoad.enabled = true }
+                function loadComplete() {
+                    fileLoad.text = fileLoad.openingReady
+                    fileLoad.enabled = true }
             }
             function openHere() {
                 x = ma.mouseX
@@ -113,12 +120,17 @@ ApplicationWindow {
             property int minValue: 0
             id: pieSeries
             onClicked: {
-                for(var i = 0; i < pieSeries.count; i++) {
-                    pieSeries.at(i).exploded = false
-                }
+                if (slice.exploded === true) {
+                    slice.exploded = false
+                    valueText.text = ""
+                } else {
+                    for(var i = 0; i < pieSeries.count; i++) {
+                        pieSeries.at(i).exploded = false
+                    }
 
-                valueText.printValue(slice.label, slice.value)
-                slice.exploded = true
+                    valueText.printValue(slice.label, slice.value)
+                    slice.exploded = true
+                }
             }
 
             function begins(fname) {

@@ -17,6 +17,7 @@ public:
 
 signals:
     void dataUpdating(int freq, QString word);
+    void progress(int percentage);
 
 private:
     QUrl m_fname;
@@ -31,6 +32,7 @@ public:
 signals:
     void processingComplete();
     void dataUpdating(int freq, QString word);
+    void progress(int percentage);
 
 
 public slots:

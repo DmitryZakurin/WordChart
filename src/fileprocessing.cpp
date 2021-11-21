@@ -28,13 +28,11 @@ FileProcessing::onFileChoosen(const QString &fname)
     });
     connect(m_thread.data(), &ParsingfThread::dataUpdating,
             this, &FileProcessing::dataUpdating);
+    connect(m_thread.data(), &ParsingfThread::progress,
+            this, &FileProcessing::progress);
     m_thread->start();
 }
 
-/*
-{emit dataUpdating(0, 34, "Word");
-}
-*/
 
 ParsingfThread::ParsingfThread(const QString &fname, QObject *parent) :
     QThread(parent),
@@ -44,7 +42,6 @@ ParsingfThread::ParsingfThread(const QString &fname, QObject *parent) :
 
 void ParsingfThread::run()
 {
-    //qDebug() << "Open file " << m_fname.toLocalFile();
 
     QFile file(m_fname.toLocalFile());
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -53,12 +50,15 @@ void ParsingfThread::run()
     }
 
     QMap<QString, uint32_t> wordDict;
+    qsizetype bytesProcessed = 0;
     while (!file.atEnd()) {
         {
             //Read a line from the file
-            QByteArray line = file.readLine().simplified();
+            QByteArray line = file.readLine();
             //qDebug() << "read line " << line;
-            auto list = line.split(' ');
+            bytesProcessed += line.size();
+            emit progress( bytesProcessed  * 100 / file.size() );
+            auto list = line.simplified().split(' ');
             for(auto l : list)
                 if (!l.isEmpty())
                     wordDict[QString(l)]++;
