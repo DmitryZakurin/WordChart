@@ -28,32 +28,30 @@ ApplicationWindow {
         }
     }
 
+    //Signals from file processing C++ part
     Connections {
         target: fileProcessing
-        onProcessingComplete: {
+        function onProcessingComplete() {
             fileLoad.loadComplete()
         }
-        onProgress: {
+        function onProgress(percentage) {
             fileLoad.text = qsTr("Done ") +  (percentage) + " %"
         }
 
-        onDataUpdating: {
-            //console.log("Update data", freq, word)
+        function onDataUpdating(freq, word) {
             var fnd = pieSeries.find(word)
             if (fnd) {
-                //console.log("Update value ", word ," from ", fnd.value, " to ", freq );
+                //Replace an existing value
                 fnd.value = freq
             } else {
-                //console.log("Add new value")
                 if (pieSeries.count > 14) {
+                    //Try to replace an existing one
                     if (pieSeries.minValue <= freq) {
-                        //console.log("Try to replace exiting label")
                         var min = freq
                         var f = null
                         for(var i = 0; i < pieSeries.count; i++) {
-                            //console.log("Trying: ", pieSeries.at(i).label, "(", pieSeries.at(i).value, ") < ", word, "(", freq, ")" );
                             if (pieSeries.at(i).value <= min) {
-                                //Replace only smallest ABC order
+                                //Replace only label with smallest ABC order
                                 if ((pieSeries.at(i).value === min) &&
                                         (pieSeries.at(i).label < ( f ? f.label : word)))
                                     continue
@@ -62,15 +60,14 @@ ApplicationWindow {
                             }
                         }
                         if (f) {
-                            //We found the min < freq
-                            //console.log("Replace ", f.label, " with freq ", f.value, " to ", word, " with freq ", freq);
+                            //We found the min < freq label
                             pieSeries.minValue = min
                             f.label = word
                             f.value = freq
                         }
                     }
                 } else {
-                    //console.log("Add ", word, " = ", freq)
+                    //Just add new one
                     pieSeries.append(word, freq)
                 }
             }
@@ -81,8 +78,6 @@ ApplicationWindow {
         id: chart
         property string baseName: qsTr("Top 15 words ")
         title: baseName
-        //width: parent.width
-        //height: parent.height
         anchors.fill: parent
         theme: ChartView.ChartThemeBrownSand
         antialiasing: true
@@ -119,6 +114,7 @@ ApplicationWindow {
         PieSeries {
             property int minValue: 0
             id: pieSeries
+            //Show slice value on click
             onClicked: {
                 if (slice.exploded === true) {
                     slice.exploded = false
@@ -133,6 +129,7 @@ ApplicationWindow {
                 }
             }
 
+            //Start new file
             function begins(fname) {
                 chart.title = chart.baseName + "in " + fname
                 valueText.text = ""
@@ -146,7 +143,7 @@ ApplicationWindow {
             x: chart.width / 2
             y: chart.height - valueText.font.pixelSize - 20
             function printValue(lbl, val) {
-                valueText.text = lbl + " = " + val
+                valueText.text = qsTr("Word \"") + lbl + qsTr("\" occurs ") + val + qsTr(" times")
             }
         }
     }

@@ -30,12 +30,16 @@ public:
     explicit FileProcessing(QObject *parent = nullptr);
 
 signals:
+    //emits on processing finish
     void processingComplete();
+    //emits on data updating
     void dataUpdating(int freq, QString word);
+    //emits progress
     void progress(int percentage);
 
 
 public slots:
+    //User choses file
     void onFileChoosen(const QString &fname);
 
 private:

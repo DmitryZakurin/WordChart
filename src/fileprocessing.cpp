@@ -55,9 +55,10 @@ void ParsingfThread::run()
         {
             //Read a line from the file
             QByteArray line = file.readLine();
-            //qDebug() << "read line " << line;
+
             bytesProcessed += line.size();
             emit progress( bytesProcessed  * 100 / file.size() );
+
             auto list = line.simplified().split(' ');
             for(auto l : list)
                 if (!l.isEmpty())
@@ -66,7 +67,6 @@ void ParsingfThread::run()
         //Arrange the words by usage frequncy
         QVector<QStringList> freqVect;
         for(auto it = wordDict.cbegin(); it != wordDict.cend(); ++it) {
-            //qDebug() << it.key() << it.value();
             if(it.value() == 0) {
                 qDebug() << "WTF: word " << it.key() << " with 0 frequency!";
                 continue;
@@ -76,25 +76,20 @@ void ParsingfThread::run()
             freqVect[it.value()-1].append(it.key());
         }
 
+        //Update only TOP_MAX highest occurrences
         int max = TOP_MAX;
         for(int i = freqVect.size(); i > 0; --i) {
             QStringList& list = freqVect[i-1];
-            //qDebug() << "List=" << list << i;
             if (list.isEmpty())
                 continue;
-            //Sort isn't needed cause the values came from already sorted map
-           // list.sort();
+            if (max <= 0)
+                break;
             for(const auto& l : list) {
                 if((--max) < 0)
                     break;
-                //qDebug() << "send " << max << i << l;
                 emit dataUpdating(i, l);
             }
         }
     }
-
- //   for (auto it = wordDict.cbegin(); it != wordDict.cend(); ++it)
- //       qDebug() << it.key() << it.value();
- //   qDebug() << wordDict;
 }
 
